@@ -123,9 +123,7 @@ export const Carousel = () => {
       </div>
       {/* Mobile */}
       <div className="d-lg-none mt-3">
-        <div className="row d-flex justify-content-center align-items-center">
-          <ReturnBook book={books[7]} key={books[7].id} />
-        </div>
+        <div className="row d-flex justify-content-center align-items-center"></div>
       </div>
       <div className="homepage-carousel-title mt-3">
         <Link className="btn btn-outline-secondary btn-lg" to="/search">
