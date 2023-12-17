@@ -4,7 +4,7 @@ class AddBookRequestModel {
   description: string;
   copies: number;
   category: string;
-  img: string;
+  img?: string;
 
   constructor(
     title: string,
@@ -12,7 +12,7 @@ class AddBookRequestModel {
     description: string,
     copies: number,
     category: string,
-    img: string
+    img?: string
   ) {
     this.title = title;
     this.author = author;

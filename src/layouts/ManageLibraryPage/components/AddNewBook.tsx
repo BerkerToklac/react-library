@@ -1,6 +1,8 @@
 import { useOktaAuth } from "@okta/okta-react";
+import { read } from "fs";
 import { validateHeaderName } from "http";
 import { useState } from "react";
+import AddBookRequestModel from "../../../models/AddBookRequestModel";
 
 export const AddNewBook = () => {
   const { authState } = useOktaAuth();
@@ -19,6 +21,67 @@ export const AddNewBook = () => {
 
   function categoryField(value: string) {
     setCategory(value);
+  }
+
+  async function base64ConversionForImages(e: any) {
+    if (e.target.files[0]) {
+      getBase64(e.target.files[0]);
+    }
+  }
+
+  function getBase64(file: any) {
+    let reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+      setSelectedImage(reader.result);
+    };
+    reader.onerror = function (error) {
+      console.log("Error", error);
+    };
+  }
+
+  async function submitNewBook() {
+    const url = `${process.env.REACT_APP_API}/admin/secure/add/book`;
+    if (
+      authState?.isAuthenticated &&
+      title !== "" &&
+      author !== "" &&
+      category !== "Category" &&
+      description !== "" &&
+      copies >= 0
+    ) {
+      const book: AddBookRequestModel = new AddBookRequestModel(
+        title,
+        author,
+        description,
+        copies,
+        category
+      );
+      book.img = selectedImage;
+      const requestOption = {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(book),
+      };
+      const submitNewBookResponse = await fetch(url, requestOption);
+      if (!submitNewBookResponse.ok) {
+        throw new Error("Something went wrong!");
+      }
+      setTitle("");
+      setAuthor("");
+      setDescription("");
+      setCopies(0);
+      setCategory("Category");
+      setSelectedImage(null);
+      setDisplayWarning(false);
+      setDisplaySuccess(true);
+    } else {
+      setDisplayWarning(true);
+      setDisplaySuccess(false);
+    }
   }
   return (
     <div className="container mt-5 mb-5">
@@ -61,8 +124,81 @@ export const AddNewBook = () => {
               </div>
               <div className="col-md-3 mb-3">
                 <label className="form-label">Category </label>
-                <button></button>
+                <button
+                  className="form-control btn btn-secondary dropdown-toggle"
+                  type="button"
+                  id="dropdownMenuButton1"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {category}
+                </button>
+                <ul>
+                  <li>
+                    <a
+                      onClick={() => categoryField("FE")}
+                      className="dropdown-item"
+                    >
+                      Front End
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      onClick={() => categoryField("BE")}
+                      className="dropdown-item"
+                    >
+                      Back End
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      onClick={() => categoryField("DATA")}
+                      className="dropdown-item"
+                    >
+                      Data
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      onClick={() => categoryField("DEVOPS")}
+                      className="dropdown-item"
+                    >
+                      DevOps
+                    </a>
+                  </li>
+                </ul>
               </div>
+            </div>
+            <div className="col-md-12 mb-3">
+              <label className="form-label">Description</label>
+              <textarea
+                className="form-control"
+                id="exampleFormControlTextarea1"
+                rows={3}
+                onChange={(e) => setDescription(e.target.value)}
+                value={description}
+              ></textarea>
+            </div>
+            <div className="col-md-3 mb-3">
+              <label className="form-label">Copies</label>
+              <input
+                type="number"
+                className="form-control"
+                name="Copies"
+                required
+                onChange={(e) => setCopies(Number(e.target.value))}
+                value={copies}
+              />
+            </div>
+            <input type="file" onChange={(e) => base64ConversionForImages(e)} />
+            <div>
+              <button
+                type="button"
+                className="btn btn-primary mt-3"
+                onClick={submitNewBook}
+              >
+                Add Book
+              </button>
             </div>
           </form>
         </div>
